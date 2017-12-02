@@ -1,4 +1,4 @@
-% load('cameraParams.mat');
+load('cameraParams.mat');
 
 list = dir('test*');
 imgarr = cell(length(list),1);
@@ -8,9 +8,6 @@ for i = 1:length(list)
     imgarr{i} = undistortImage(imgarr{i},cameraParams);
 end
 
-
-% border = 50;
-% roi = [border, border, size(I, 2)- 2*border, size(I, 1)- 2*border];
 I = imgarr{1};
 prevPoints   = detectSURFFeatures(I, 'NumOctaves', 8 );
 
@@ -103,10 +100,10 @@ grid on
 hold off
 
 % Specify the viewing volume.
-% loc1 = camPoses.Location{1};
-% xlim([loc1(1)-5, loc1(1)+4]);
-% ylim([loc1(2)-5, loc1(2)+4]);
-% zlim([loc1(3)-1, loc1(3)+20]);
-% camorbit(0, -30);
+loc1 = camPoses.Location{1};
+xlim([loc1(1)-5, loc1(1)+4]);
+ylim([loc1(2)-5, loc1(2)+4]);
+zlim([loc1(3)-1, loc1(3)+20]);
+camorbit(0, -30);
 
 title('Refined Camera Poses');

@@ -54,3 +54,39 @@ xyzPoints = triangulateMultiview(tracks, camPoses,...
 [xyzPoints, camPoses, reprojectionErrors] = bundleAdjustment(...
     xyzPoints, tracks, camPoses, cameraParams, 'FixedViewId', 1, ...
     'PointsUndistorted', true);
+
+colors = zeros(size(xyzPoints, 1), 3);
+colored = cell(numel(imgarr), 1);
+for i = 1:height(camPoses)
+    img = imread(strcat(list(i).name));
+    img = undistortImage(img,cameraParams);
+    coloredPoints = colorizeBackProjection(xyzPoints, camPoses(i, :), cameraParams, img);
+    colored{i} = coloredPoints;
+    colors = colors + coloredPoints(:, 4:6);
+end
+    
+
+% Average the colors
+colors = colors ./ numel(imgarr) ./ 256;
+
+figure(1);
+plotCamera(camPoses, 'Size', 0.2);
+hold on
+
+% Exclude noisy 3-D world points.
+goodIdx = (reprojectionErrors < 5);
+
+% Display the dense 3-D world points.
+pcshow(xyzPoints(goodIdx, :), colors(goodIdx, :), 'VerticalAxis', 'y', 'VerticalAxisDir', 'down', ...
+    'MarkerSize', 45);
+grid on
+hold off
+
+% Specify the viewing volume.
+loc1 = camPoses.Location{1};
+xlim([loc1(1)-5, loc1(1)+4]);
+ylim([loc1(2)-5, loc1(2)+4]);
+zlim([loc1(3)-1, loc1(3)+20]);
+camorbit(0, -30);
+axis equal;
+title('Dense Reconstruction');
