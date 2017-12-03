@@ -55,29 +55,32 @@ xyzPoints = triangulateMultiview(tracks, camPoses,...
     xyzPoints, tracks, camPoses, cameraParams, 'FixedViewId', 1, ...
     'PointsUndistorted', true);
 
-colors = zeros(size(xyzPoints, 1), 3);
+colors = zeros(size(facedata, 1), 3);
 colored = cell(numel(imgarr), 1);
 for i = 1:height(camPoses)
     img = imread(strcat(list(i).name));
     img = undistortImage(img,cameraParams);
-    coloredPoints = colorizeBackProjection(xyzPoints, camPoses(i, :), cameraParams, img);
+    coloredPoints = colorizeBackProjection(facedata, camPoses(i, :), cameraParams, img);
     colored{i} = coloredPoints;
     colors = colors + coloredPoints(:, 4:6);
 end
     
 
 % Average the colors
-colors = colors ./ numel(imgarr) ./ 256;
+colors = colors ./ numel(imgarr) ./ 255;
+% Save as ply
+ptCloud = pointCloud(facedata, 'Color', colors);
 
+pcwrite(ptCloud, 'head.ply');
 figure(1);
-plotCamera(camPoses, 'Size', 0.2);
-hold on
+% plotCamera(camPoses, 'Size', 0.2);
+% hold on
 
 % Exclude noisy 3-D world points.
-goodIdx = (reprojectionErrors < 5);
+% goodIdx = (reprojectionErrors < 5);
 
 % Display the dense 3-D world points.
-pcshow(xyzPoints(goodIdx, :), colors(goodIdx, :), 'VerticalAxis', 'y', 'VerticalAxisDir', 'down', ...
+pcshow(facedata, colors, 'VerticalAxis', 'y', 'VerticalAxisDir', 'down', ...
     'MarkerSize', 45);
 grid on
 hold off
